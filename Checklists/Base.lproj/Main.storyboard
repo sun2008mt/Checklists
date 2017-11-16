@@ -44,7 +44,7 @@
                     <navigationItem key="navigationItem" title="Checklists" id="Fek-Tl-CCY">
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="njW-Eu-GOo">
                             <connections>
-                                <segue destination="yHl-iv-59I" kind="presentation" modalTransitionStyle="flipHorizontal" id="qLm-Xh-5N1"/>
+                                <segue destination="yHl-iv-59I" kind="presentation" identifier="AddItem" modalTransitionStyle="flipHorizontal" id="qLm-Xh-5N1"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
@@ -56,27 +56,31 @@
         <!--Add Item-->
         <scene sceneID="Hzy-hp-dij">
             <objects>
-                <tableViewController id="Cff-Nq-CjP" customClass="AddItemTableViewController" customModule="Checklists" customModuleProvider="target" sceneMemberID="viewController">
-                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" id="uby-FB-dma">
+                <tableViewController id="Cff-Nq-CjP" customClass="AddItemViewController" customModule="Checklists" customModuleProvider="target" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="grouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" sectionFooterHeight="18" id="uby-FB-dma">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
                         <sections>
                             <tableViewSection id="Mgq-Rd-kst">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="NCd-Yw-VFX">
-                                        <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
+                                        <rect key="frame" x="0.0" y="35" width="375" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="NCd-Yw-VFX" id="aBL-qc-JAd">
                                             <rect key="frame" x="0.0" y="0.0" width="375" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <textField opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="Test" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="bvQ-ag-fKh">
-                                                    <rect key="frame" x="16" y="6" width="343" height="30"/>
+                                                <textField opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Name of the Item" textAlignment="natural" adjustsFontSizeToFit="NO" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="9nh-Mc-tBS">
+                                                    <rect key="frame" x="0.0" y="0.0" width="375" height="43"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                     <nil key="textColor"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                                    <textInputTraits key="textInputTraits"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <textInputTraits key="textInputTraits" autocapitalizationType="sentences" returnKeyType="done" enablesReturnKeyAutomatically="YES"/>
+                                                    <connections>
+                                                        <action selector="done" destination="Cff-Nq-CjP" eventType="editingDidEndOnExit" id="EdQ-nD-thN"/>
+                                                        <outlet property="delegate" destination="Cff-Nq-CjP" id="Sjx-hg-Cyt"/>
+                                                    </connections>
                                                 </textField>
                                             </subviews>
                                         </tableViewCellContentView>
@@ -95,12 +99,16 @@
                                 <action selector="cancel" destination="Cff-Nq-CjP" id="5kO-L3-lKD"/>
                             </connections>
                         </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" systemItem="done" id="gis-eV-Vzh">
+                        <barButtonItem key="rightBarButtonItem" enabled="NO" systemItem="done" id="gis-eV-Vzh">
                             <connections>
                                 <action selector="done" destination="Cff-Nq-CjP" id="nkW-ug-AYe"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
+                    <connections>
+                        <outlet property="doneBarButton" destination="gis-eV-Vzh" id="IkP-cT-mc6"/>
+                        <outlet property="textField" destination="9nh-Mc-tBS" id="07j-ai-RYC"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x0l-1A-DHX" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>

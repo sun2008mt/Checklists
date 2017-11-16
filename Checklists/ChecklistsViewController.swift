@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ChecklistsViewController: UITableViewController {
+class ChecklistsViewController: UITableViewController, AddItemViewControllerDelegate {
     
     private var items: [ChecklistItem]
     
@@ -97,6 +97,32 @@ class ChecklistsViewController: UITableViewController {
         
     }
     
+    //在一个界面将要向另一个界面转场时被调用
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "AddItem" {
+            //转场的目的视图控制器
+            let navigationController = segue.destination as! UINavigationController
+            
+            //获取顶层视图
+            let controller = navigationController.topViewController as! AddItemViewController
+            
+            //将代理权交给被委托者
+            controller.delegate = self
+        }
+    }
+    
+    func addItemControllerDidCancel(_ controller: AddItemViewController) {
+        print("Cancel clicked")
+        controller.dismiss(animated: true, completion: nil)
+    }
+    
+    func addItemController(_ controller: AddItemViewController, didFinishAdding item: ChecklistItem) {
+        print("Done clicked")
+        controller.dismiss(animated: true, completion: nil)
+    
+        addItem(item: item)
+    }
+    
     func configureText(for cell: UITableViewCell, with item: ChecklistItem) {
         let label = cell.viewWithTag(1000) as! UILabel
         label.text = item.text
@@ -111,16 +137,12 @@ class ChecklistsViewController: UITableViewController {
         }
     }
     
-    @IBAction func addItem() {
+    func addItem(item: ChecklistItem) {
         //数据模型和表格空间中需要同时添加数据，数据模型和视图必须保持同步
         
         //新添加的行在数组中的索引号
         let newRowIndex = items.count
-      
-        //创建新数据对象
-        let item = ChecklistItem()
-        item.text = "I am a new row"
-        item.checked = false
+        
         items.append(item)
         
         //IndexPath标识新的行位置：section 0的第newRowIndex行
