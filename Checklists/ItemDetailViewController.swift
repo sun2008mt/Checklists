@@ -17,22 +17,31 @@ import UIKit
  * 5.告诉对象B，对象A现在是你的委托了
  */
 
+ /*数据在视图控制器之间传递有两种方法：
+ *1.从A到B。当界面A打开界面B时，A可以给B需要的数据。简单地在B的视图控制器中创建一个实例变量，然后A转场到B时给这个变量赋值就可以了，这一工作通常都是在prepare(for:sender:)中完成的
+ *2.从B到A。B回传数据给A则需要使用委托
+  */
+
 //委托和协议是手拉手出现的(class关键字表明只能由类来实现，不能由struct和enum来实现)
-protocol AddItemViewControllerDelegate: class {
+protocol ItemDetailViewControllerDelegate: class {
     //委托方法通常以第一个参数指代它们的属主
-    func addItemControllerDidCancel(_ controller: AddItemViewController)
-    func addItemController(_ controller: AddItemViewController, didFinishAdding item: ChecklistItem)
+    func itemDetailControllerDidCancel(_ controller: ItemDetailViewController)
+    func addItemController(_ controller: ItemDetailViewController, didFinishAdding item: ChecklistItem)
+    func editItemController(_ controller: ItemDetailViewController, didFinishEditing item: ChecklistItem)
 }
 
-class AddItemViewController: UITableViewController, UITextFieldDelegate {
+class ItemDetailViewController: UITableViewController, UITextFieldDelegate {
     
     //Outlet是确定的
     @IBOutlet private weak var textField: UITextField!
     
+    //Done按钮
     @IBOutlet private weak var doneBarButton: UIBarButtonItem!
     
     //委托是可选的(不要定义为private，因为会被受委托者调用)
-    var delegate: AddItemViewControllerDelegate?
+    var delegate: ItemDetailViewControllerDelegate?
+    
+    var itemToEdit: ChecklistItem?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -42,6 +51,13 @@ class AddItemViewController: UITableViewController, UITextFieldDelegate {
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        
+        //判断是添加Item还是编辑Item
+        if let item = itemToEdit {
+            title = "Edit Item"
+            textField.text = item.text
+            doneBarButton.isEnabled = true
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -129,11 +145,13 @@ class AddItemViewController: UITableViewController, UITextFieldDelegate {
         textField.becomeFirstResponder()
     }
     
+    //监控输入框中的输入
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         //Swift中的String和Object-C中的NSString是桥接的
         let oldText = textField.text! as NSString
         let newText = oldText.replacingCharacters(in: range, with: string) as NSString
         
+        //如果输入框没有输入或者被删除，则禁用Done按钮
         doneBarButton.isEnabled = (newText.length > 0)
         
 //        if newText.length > 0 {
@@ -148,14 +166,21 @@ class AddItemViewController: UITableViewController, UITextFieldDelegate {
     //IBAction永远不返回值
     @IBAction func cancel() {
 //        dismiss(animated: true, completion: nil)
-        delegate?.addItemControllerDidCancel(self)
+        delegate?.itemDetailControllerDidCancel(self)
     }
     
     @IBAction func done() {
 //        dismiss(animated: true, completion: nil)
-        let item = ChecklistItem()
-        item.text = textField.text!
-        item.checked = false
-        delegate?.addItemController(self, didFinishAdding: item)
+        
+        if let item = itemToEdit {
+            item.text = textField.text!
+            delegate?.editItemController(self, didFinishEditing: item)
+        } else {
+            let item = ChecklistItem()
+            item.text = textField.text!
+            item.checked = false
+            
+            delegate?.addItemController(self, didFinishAdding: item)
+        }
     }
 }
