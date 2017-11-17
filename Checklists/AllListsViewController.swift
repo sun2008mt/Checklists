@@ -8,30 +8,22 @@
 
 import UIKit
 
-class AllListsViewController: UITableViewController, ListDetailViewControllerDelegate {
+class AllListsViewController: UITableViewController, ListDetailViewControllerDelegate, UINavigationControllerDelegate {
 
-    var lists: [Checklist]
+//    var lists: [Checklist]
 //    var lists: Array<Checklist>
+    var dataModel: DataModel!
     
     //当UIKit从StoryBoard中读取视图控制器时会调用此方法(NSCoder用来解析storyboard文件和其他编码文件)
-    required init?(coder aDecoder: NSCoder) {
-        lists = [Checklist]()
-        
-        super.init(coder: aDecoder)
-        
-        var list = Checklist("Birthdays")
-        lists.append(list)
-        
-        list = Checklist("Groceries")
-        lists.append(list)
-        
-        list = Checklist("Cool Apps")
-        lists.append(list)
-        
-        list = Checklist("To Do")
-        lists.append(list)
-    }
+//    required init?(coder aDecoder: NSCoder) {
+//        lists = [Checklist]()
+//
+//        super.init(coder: aDecoder)
+//
+//        loadChecklists()
+//    }
     
+    //每次加载此界面时被调用（不仅仅是在app启动时）
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -40,6 +32,16 @@ class AllListsViewController: UITableViewController, ListDetailViewControllerDel
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        
+        navigationController?.delegate = self
+        let index = UserDefaults.standard.integer(forKey: "ChecklistIndex")
+        
+        //如果有保存之前因为意外终止存储的数据，读取并且调到相应界面
+        if index != -1 {
+            let checklist = dataModel.lists[index]
+            performSegue(withIdentifier: "ShowChecklist", sender: checklist)
+//            UserDefaults.standard.set(-1, forKey: "ChecklistIndex")
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -56,14 +58,14 @@ class AllListsViewController: UITableViewController, ListDetailViewControllerDel
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return lists.count
+        return dataModel.lists.count
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cellIdentifier = "Cell"
         let cell = makeCell(for: tableView, with: cellIdentifier)
        
-        let checklist = lists[indexPath.row]
+        let checklist = dataModel.lists[indexPath.row]
         cell.textLabel!.text = checklist.name
         cell.accessoryType = .detailDisclosureButton
         
@@ -72,7 +74,10 @@ class AllListsViewController: UITableViewController, ListDetailViewControllerDel
     
     //当用户点击某一行时触发此委托方法
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let checklist = lists[indexPath.row]
+        //将用户当前关注的行存入UserDefaults中，避免app意外终止丢失掉必要数据
+        UserDefaults.standard.set(indexPath.row, forKey: "ChecklistIndex")
+        
+        let checklist = dataModel.lists[indexPath.row]
         //手动转场(将要传递的对象方法sender中)
         performSegue(withIdentifier: "ShowChecklist", sender: checklist)
     }
@@ -89,7 +94,7 @@ class AllListsViewController: UITableViewController, ListDetailViewControllerDel
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             // Delete the row from the data source
-            lists.remove(at: indexPath.row)
+            dataModel.lists.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .fade)
         } else if editingStyle == .insert {
             // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
@@ -116,7 +121,7 @@ class AllListsViewController: UITableViewController, ListDetailViewControllerDel
         let navigationController = storyboard!.instantiateViewController(withIdentifier: "ListDetailNavigationController") as! UINavigationController
         let controller = navigationController.topViewController as! ListDetailViewController
         controller.delegate = self
-        let checklist = lists[indexPath.row]
+        let checklist = dataModel.lists[indexPath.row]
         controller.checklistToEdit = checklist
         present(navigationController, animated: true, completion: nil)
     }
@@ -137,8 +142,19 @@ class AllListsViewController: UITableViewController, ListDetailViewControllerDel
             controller.checklistToEdit = nil
         }
     }
- 
     
+    /*
+     * ==检查的是两个变量是否有同一个值
+     * ===检查的是两个变量是否引用了同一个对象
+     */
+    //导航栏栈堆中推入或者弹出视图控制器时被调用
+    func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+        if viewController === self {
+            //类似于安卓里的SharedPreference
+            UserDefaults.standard.set(-1, forKey: "ChecklistIndex")
+        }
+    }
+ 
     //创建cell（获取可以复用的cell对象，如果没有则新创建一个）
     /*
      * 制作cell有四种方法：
@@ -162,8 +178,8 @@ class AllListsViewController: UITableViewController, ListDetailViewControllerDel
     func listDetailViewController(_ controller: ListDetailViewController, didFinishAdding checkList: Checklist) {
         dismiss(animated: true, completion: nil)
         
-        let newRowIndex = lists.count
-        lists.append(checkList)
+        let newRowIndex = dataModel.lists.count
+        dataModel.lists.append(checkList)
         let indexPath = IndexPath(row: newRowIndex, section: 0)
         let indexPaths = [indexPath]
         tableView.insertRows(at: indexPaths, with: .automatic)
@@ -172,7 +188,7 @@ class AllListsViewController: UITableViewController, ListDetailViewControllerDel
     func listDetailViewController(_ controller: ListDetailViewController, didFinishEditing checkList: Checklist) {
         dismiss(animated: true, completion: nil)
         
-        if let index = lists.index(of: checkList) {
+        if let index = dataModel.lists.index(of: checkList) {
             let indexPath = IndexPath(row: index, section: 0)
             if let cell = tableView.cellForRow(at: indexPath) {
                 cell.textLabel!.text = checkList.name
