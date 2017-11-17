@@ -12,6 +12,8 @@ import UIKit
 
 class ChecklistsViewController: UITableViewController, ItemDetailViewControllerDelegate {
     
+    var checklist: Checklist!
+    
     private var listItems: [ChecklistItem]
     
     required init?(coder aDecoder: NSCoder) {
@@ -28,6 +30,7 @@ class ChecklistsViewController: UITableViewController, ItemDetailViewControllerD
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        title = checklist.name
     }
 
     override func didReceiveMemoryWarning() {
@@ -51,7 +54,7 @@ class ChecklistsViewController: UITableViewController, ItemDetailViewControllerD
     //获取所拥有的数据行数中的数据（根据返回的行数发送多次请求）
     //此数据源方法的目的是当某一行可见时，传递一个新的(或者重新利用的)cell对象到table view,只有UITableView可以调用它的数据源方法
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        //获取prototype cell的拷贝(UITableViewCell对象)
+        //获取prototype cell的拷贝(UITableViewCell对象)，带有IndexPath参数的仅适用于标准cell
         let cell = tableView.dequeueReusableCell(withIdentifier: "ChecklistItem", for: indexPath)
         
         let item = listItems[indexPath.row]
