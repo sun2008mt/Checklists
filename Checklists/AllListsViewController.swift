@@ -8,7 +8,7 @@
 
 import UIKit
 
-class AllListsViewController: UITableViewController {
+class AllListsViewController: UITableViewController, ListDetailViewControllerDelegate {
 
     var lists: [Checklist]
 //    var lists: Array<Checklist>
@@ -85,17 +85,16 @@ class AllListsViewController: UITableViewController {
     }
     */
 
-    /*
     // Override to support editing the table view.
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             // Delete the row from the data source
+            lists.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .fade)
         } else if editingStyle == .insert {
             // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
         }    
     }
-    */
 
     /*
     // Override to support rearranging the table view.
@@ -111,6 +110,16 @@ class AllListsViewController: UITableViewController {
         return true
     }
     */
+    
+    //accessory按钮点击触发
+    override func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
+        let navigationController = storyboard!.instantiateViewController(withIdentifier: "ListDetailNavigationController") as! UINavigationController
+        let controller = navigationController.topViewController as! ListDetailViewController
+        controller.delegate = self
+        let checklist = lists[indexPath.row]
+        controller.checklistToEdit = checklist
+        present(navigationController, animated: true, completion: nil)
+    }
 
     //在转场执行后立即被调用(目标控制器的viewDidLoad方法在此方法之后被调用)
     // In a storyboard-based application, you will often want to do a little preparation before navigation
@@ -119,8 +128,13 @@ class AllListsViewController: UITableViewController {
         // Pass the selected object to the new view controller.
         if segue.identifier == "ShowChecklist" {
             let controller = segue.destination as! ChecklistsViewController
-            //将sender赋值给目标控制器的指定对象
-            controller.checklist = sender as! Checklist
+            //将sender赋值给目标控制器的指定对象(不是传递的拷贝，传递的是引用)
+            controller.checklist = sender as! Checklist      //type cast
+        } else if segue.identifier == "AddChecklist" {
+            let navigationController = segue.destination as! UINavigationController
+            let controller = navigationController.topViewController as! ListDetailViewController
+            controller.delegate = self
+            controller.checklistToEdit = nil
         }
     }
  
@@ -138,6 +152,31 @@ class AllListsViewController: UITableViewController {
             return cell
         } else {
             return UITableViewCell(style: .default, reuseIdentifier: cellIdentifier)
+        }
+    }
+    
+    func listDetailViewControllerDidCancel() {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    func listDetailViewController(_ controller: ListDetailViewController, didFinishAdding checkList: Checklist) {
+        dismiss(animated: true, completion: nil)
+        
+        let newRowIndex = lists.count
+        lists.append(checkList)
+        let indexPath = IndexPath(row: newRowIndex, section: 0)
+        let indexPaths = [indexPath]
+        tableView.insertRows(at: indexPaths, with: .automatic)
+    }
+    
+    func listDetailViewController(_ controller: ListDetailViewController, didFinishEditing checkList: Checklist) {
+        dismiss(animated: true, completion: nil)
+        
+        if let index = lists.index(of: checkList) {
+            let indexPath = IndexPath(row: index, section: 0)
+            if let cell = tableView.cellForRow(at: indexPath) {
+                cell.textLabel!.text = checkList.name
+            }
         }
     }
 }
